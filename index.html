@@ -1,0 +1,2557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The World Cup of Britpop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kosugi&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f5f1;
+      --panel: #fcfcf9;
+      --line: #111;
+      --text: #111;
+      --muted: #6a6a6a;
+      --font: "Kosugi", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .app {
+      width: 100vw;
+      height: 100vh;
+      padding: 10px;
+      background: var(--bg);
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+      height: 100%;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .screen::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(to right, rgba(0, 0, 0, 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
+      background-size: 140px 140px;
+    }
+
+    .topbar {
+      position: relative;
+      z-index: 2;
+      height: 42px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--text);
+      min-height: 44px;
+      padding: 0 16px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 120ms ease, color 120ms ease;
+    }
+
+    .btn:hover,
+    .btn:focus-visible {
+      background: #111;
+      color: #fff;
+      outline: none;
+    }
+
+    .center {
+      position: relative;
+      z-index: 1;
+      height: calc(100% - 42px);
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .holding-wrap,
+    .pot-intro-wrap,
+    .start-wrap,
+    .divider-wrap,
+    .reveal-wrap,
+    .pot-groups-wrap,
+    .final-wrap {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-rows: 1fr 64px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .holding-main,
+    .pot-intro-main,
+    .start-main,
+    .divider-main,
+    .reveal-main,
+    .pot-groups-main,
+    .final-main {
+      border-bottom: 1px solid var(--line);
+      min-height: 0;
+    }
+
+    .holding-main {
+      display: grid;
+      place-items: center;
+      padding: 10px;
+    }
+
+    .holding-main img {
+      width: min(96vw, 1680px);
+      height: min(66vh, 860px);
+      object-fit: contain;
+      display: block;
+    }
+
+    .holding-foot,
+    .pot-intro-foot,
+    .start-foot,
+    .divider-foot,
+    .reveal-foot,
+    .pot-groups-foot,
+    .final-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+
+    .pot-intro-main {
+      padding: 16px;
+      min-height: 0;
+      display: grid;
+    }
+
+    .pot-intro-board {
+      width: 100%;
+      height: 100%;
+      border: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 0.78fr 1.22fr;
+      min-height: 0;
+      background: rgba(255, 255, 255, 0.36);
+    }
+
+    .pot-intro-info {
+      border-right: 1px solid var(--line);
+      padding: 28px;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 18px;
+      min-height: 0;
+    }
+
+    .pot-intro-kicker {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .pot-intro-title {
+      margin: 0;
+      font-size: clamp(54px, 7vw, 116px);
+      font-weight: 700;
+      line-height: 0.92;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .pot-intro-type {
+      font-size: clamp(16px, 2vw, 28px);
+      font-weight: 400;
+      line-height: 1.1;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .pot-intro-copy {
+      max-width: 52ch;
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.55;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .pot-intro-stats {
+      align-self: end;
+      border: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      background: rgba(255, 255, 255, 0.48);
+    }
+
+    .pot-intro-stat {
+      min-height: 74px;
+      padding: 12px;
+      display: grid;
+      align-content: center;
+      gap: 6px;
+    }
+
+    .pot-intro-stat + .pot-intro-stat {
+      border-left: 1px solid var(--line);
+    }
+
+    .pot-intro-stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .pot-intro-stat-value {
+      font-size: clamp(18px, 2vw, 28px);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .pot-intro-grid {
+      padding: 18px;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: 36px repeat(12, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .pot-intro-table-head,
+    .pot-intro-team {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.46);
+      display: grid;
+      grid-template-columns: 86px 1fr 104px;
+      align-items: stretch;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .pot-intro-table-head {
+      background: #111;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .pot-intro-table-head > div,
+    .pot-intro-rank,
+    .pot-intro-name,
+    .pot-intro-votes {
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      min-width: 0;
+    }
+
+    .pot-intro-table-head > div + div,
+    .pot-intro-name,
+    .pot-intro-votes {
+      border-left: 1px solid var(--line);
+    }
+
+    .pot-intro-table-head > div + div {
+      border-left-color: #fff;
+    }
+
+    .pot-intro-rank {
+      justify-content: center;
+      font-size: clamp(15px, 1.3vw, 21px);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .pot-intro-name {
+      font-size: clamp(14px, 1.2vw, 20px);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      overflow-wrap: anywhere;
+      text-wrap: balance;
+    }
+
+    .pot-intro-votes {
+      justify-content: center;
+      font-size: clamp(14px, 1.15vw, 19px);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .start-main {
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 24px;
+    }
+
+    .start-block {
+      display: grid;
+      gap: 22px;
+      justify-items: center;
+    }
+
+    .title {
+      margin: 0;
+      max-width: 14ch;
+      font-size: clamp(30px, 4.8vw, 68px);
+      font-weight: 700;
+      line-height: 1.04;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .presented-by {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--text);
+      opacity: 0;
+      animation: signOn 2.4s forwards;
+    }
+
+    .start-screen-title {
+      opacity: 0;
+      animation: titleAppear 0.85s ease forwards;
+      animation-delay: 1.25s;
+    }
+
+    .start-screen-subtitle {
+      opacity: 0;
+      animation: titleAppear 0.75s ease forwards;
+      animation-delay: 1.65s;
+    }
+
+    .start-screen-button {
+      opacity: 0;
+      animation: titleAppear 0.75s ease forwards;
+      animation-delay: 1.95s;
+    }
+
+    @keyframes signOn {
+      0% { opacity: 0; }
+      8% { opacity: 0.15; }
+      12% { opacity: 0; }
+      20% { opacity: 0.4; }
+      24% { opacity: 0; }
+      34% { opacity: 0.75; }
+      38% { opacity: 0.25; }
+      48% { opacity: 0.9; }
+      54% { opacity: 0.55; }
+      68% { opacity: 1; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes titleAppear {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .divider-main {
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .divider-card {
+      width: min(1100px, 88vw);
+      height: min(460px, 54vh);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.5);
+      display: grid;
+      grid-template-rows: 44px 1fr;
+    }
+
+    .divider-head {
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .divider-body {
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 24px;
+      gap: 18px;
+    }
+
+    .divider-pot {
+      font-size: clamp(44px, 8vw, 128px);
+      font-weight: 700;
+      line-height: 0.95;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .divider-type {
+      font-size: clamp(16px, 2vw, 28px);
+      font-weight: 400;
+      line-height: 1.1;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .reveal-main {
+      padding: 12px;
+    }
+
+    .reveal-layout {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 12px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.45);
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: 42px 1fr;
+    }
+
+    .panel-head {
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .pot-panel-body {
+      padding: 12px;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 12px;
+    }
+
+    .pot-title-block {
+      display: grid;
+      gap: 6px;
+    }
+
+    .pot-title {
+      font-size: clamp(26px, 3.4vw, 46px);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .pot-subtitle {
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .pot-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-auto-rows: 1fr;
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .pot-team {
+      border: 1px solid var(--line);
+      min-height: 74px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.2;
+      text-align: center;
+      text-transform: uppercase;
+      background: transparent;
+    }
+
+    .pot-team.flash,
+    .pot-team.locked {
+      font-weight: 700;
+      background: #111;
+      color: #fff;
+    }
+
+    .pot-team.used {
+      font-weight: 500;
+      color: #777;
+      background: rgba(0, 0, 0, 0.05);
+      text-decoration: none;
+    }
+
+    .side-stack {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: 1.05fr 0.95fr;
+      gap: 12px;
+    }
+
+    .team-panel-body {
+      min-height: 0;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .team-card {
+      width: 100%;
+      height: 100%;
+      border: 2px solid var(--line);
+      display: grid;
+      grid-template-rows: auto auto 1fr auto auto;
+      align-content: center;
+      gap: 16px;
+      padding: 28px;
+      background: rgba(255, 255, 255, 0.66);
+      box-shadow: inset 0 0 0 6px rgba(0, 0, 0, 0.035);
+      text-align: center;
+    }
+
+    .team-card.locked {
+      border-width: 3px;
+      box-shadow: inset 0 0 0 10px rgba(0, 0, 0, 0.06);
+    }
+
+    .draw-strip {
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.25;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      background: #111;
+      color: #fff;
+    }
+
+    .team-label {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .team-name {
+      min-height: 1em;
+      display: grid;
+      place-items: center;
+      font-size: clamp(68px, 8.4vw, 148px);
+      font-weight: 700;
+      line-height: 0.9;
+      letter-spacing: 0.025em;
+      text-transform: uppercase;
+      overflow-wrap: anywhere;
+      text-wrap: balance;
+    }
+
+    .team-meta {
+      display: none;
+    }
+
+    .destination-card {
+      border: 2px solid var(--line);
+      display: grid;
+      gap: 8px;
+      padding: 16px 20px;
+      justify-items: center;
+      background: rgba(0, 0, 0, 0.035);
+    }
+
+    .destination-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .destination-group {
+      font-size: clamp(34px, 4.2vw, 62px);
+      font-weight: 700;
+      line-height: 0.95;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .chip {
+      min-width: 140px;
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .team-note {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .drawn-panel-body {
+      min-height: 0;
+      padding: 10px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 10px;
+    }
+
+    .drawn-summary {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .mini-chip {
+      border: 1px solid var(--line);
+      padding: 8px 10px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .drawn-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      min-height: 0;
+      display: grid;
+      grid-auto-rows: minmax(0, 1fr);
+      gap: 2px;
+      border-top: 1px solid var(--line);
+    }
+
+    .drawn-list li {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.22);
+      display: grid;
+      grid-template-columns: 52px minmax(0, 1fr);
+      align-items: center;
+      min-width: 0;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.28);
+      overflow: hidden;
+    }
+
+    .drawn-list li.pending {
+      background: #111;
+      color: #fff;
+    }
+
+    .drawn-list .group-cell {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 6px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .drawn-list .team-cell {
+      min-width: 0;
+      padding: 0 8px;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      text-transform: uppercase;
+    }
+
+    .pot-groups-main,
+    .final-main {
+      padding: 10px;
+      min-height: 0;
+    }
+
+    .final-board {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-rows: 56px 1fr;
+      gap: 10px;
+    }
+
+    .final-title-band {
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background: #111;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .final-title-band .muted {
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .groups-grid {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-rows: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .group-card {
+      border: 2px solid var(--line);
+      display: grid;
+      grid-template-rows: 36px 1fr;
+      min-height: 0;
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .group-head {
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .group-list {
+      list-style: none;
+      margin: 0;
+      padding: 8px;
+      display: grid;
+      grid-template-rows: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .group-list li {
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 8px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      min-width: 0;
+      background: rgba(255, 255, 255, 0.44);
+    }
+
+    .slot-no {
+      border-right: 1px solid var(--line);
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      padding-right: 8px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      flex: 0 0 34px;
+    }
+
+    .slot-name {
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    .results-tools {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .copy-status,
+    #revealProgress,
+    #drawnCountHead,
+    #potStatusLine,
+    #potGroupsStep {
+      font-weight: 700;
+    }
+
+    .copy-status {
+      min-width: 110px;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    @media (max-width: 1280px) {
+      .reveal-layout {
+        grid-template-columns: 1.2fr 1fr;
+      }
+
+      .pot-team {
+        min-height: 62px;
+        font-size: 11px;
+      }
+
+      .group-list li,
+      .chip,
+      .drawn-list li {
+        font-size: 10px;
+      }
+
+      .team-name {
+        font-size: clamp(48px, 6vw, 96px);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+        animation: none !important;
+      }
+
+      .presented-by,
+      .start-screen-title,
+      .start-screen-subtitle,
+      .start-screen-button {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+    }
+  
+    /* Recording simplified frame pass:
+       Keeps the monochrome/off-white identity, but removes nested box clutter. */
+
+    .holding-wrap,
+    .pot-intro-wrap,
+    .start-wrap,
+    .divider-wrap,
+    .reveal-wrap,
+    .pot-groups-wrap,
+    .final-wrap {
+      border: 0;
+      background: transparent;
+    }
+
+    .holding-main,
+    .pot-intro-main,
+    .start-main,
+    .divider-main,
+    .reveal-main,
+    .pot-groups-main,
+    .final-main {
+      border-bottom: 1px solid var(--line);
+    }
+
+    .holding-foot,
+    .pot-intro-foot,
+    .start-foot,
+    .divider-foot,
+    .reveal-foot,
+    .pot-groups-foot,
+    .final-foot {
+      padding-inline: 4px;
+    }
+
+    .pot-intro-main {
+      padding: 8px 4px 14px;
+    }
+
+    .pot-intro-board {
+      border: 0;
+      background: transparent;
+      grid-template-columns: 0.68fr 1.32fr;
+      gap: 26px;
+    }
+
+    .pot-intro-info {
+      border-right: 0;
+      padding: 8px 8px 8px 0;
+    }
+
+    .pot-intro-copy {
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 16px 0;
+    }
+
+    .pot-intro-stats {
+      border: 0;
+      border-top: 1px solid var(--line);
+      background: transparent;
+    }
+
+    .pot-intro-stat {
+      padding: 14px 0;
+    }
+
+    .pot-intro-stat + .pot-intro-stat {
+      border-left: 0;
+      padding-left: 18px;
+    }
+
+    .pot-intro-grid {
+      padding: 6px 0 0;
+      gap: 0;
+      grid-template-rows: 38px repeat(12, minmax(0, 1fr));
+    }
+
+    .pot-intro-table-head,
+    .pot-intro-team {
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: transparent;
+      grid-template-columns: 92px 1fr 116px;
+    }
+
+    .pot-intro-table-head {
+      border-top: 1px solid var(--line);
+      background: transparent;
+      color: var(--text);
+    }
+
+    .pot-intro-table-head > div + div,
+    .pot-intro-name,
+    .pot-intro-votes {
+      border-left: 0;
+    }
+
+    .pot-intro-rank,
+    .pot-intro-name,
+    .pot-intro-votes {
+      padding: 0 10px;
+    }
+
+    .divider-card {
+      border: 0;
+      background: transparent;
+    }
+
+    .divider-head {
+      border-top: 1px solid var(--line);
+    }
+
+    .reveal-main {
+      padding: 12px;
+    }
+
+    .reveal-layout {
+      gap: 12px;
+      grid-template-columns: 1.35fr 1fr;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.28);
+      grid-template-rows: 40px 1fr;
+    }
+
+    .panel-head {
+      padding-inline: 12px;
+      border-top: 0;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    .pot-panel-body {
+      padding: 12px;
+      gap: 12px;
+    }
+
+    .pot-grid {
+      gap: 8px;
+      border-top: 0;
+    }
+
+    .pot-team {
+      border: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      min-height: 64px;
+      background: transparent;
+    }
+
+    .pot-team.used {
+      opacity: 0.45;
+      text-decoration: none;
+    }
+
+    .team-panel-body {
+      padding: 18px;
+    }
+
+    .team-card {
+      border: 2px solid var(--line);
+      background: rgba(255, 255, 255, 0.46);
+      padding: 28px;
+      box-shadow: inset 0 0 0 6px rgba(0, 0, 0, 0.025);
+    }
+
+    .chip,
+    .mini-chip {
+      border: 1px solid var(--line);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    .side-stack {
+      gap: 12px;
+      grid-template-rows: 1.08fr 0.92fr;
+    }
+
+    .drawn-panel-body {
+      padding: 10px;
+    }
+
+    .drawn-list {
+      gap: 6px;
+      border-top: 0;
+    }
+
+    .drawn-list li {
+      border: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .drawn-list .group-cell {
+      border-right: 1px solid var(--line);
+      background: #111;
+      color: #fff;
+    }
+
+    .pot-groups-main,
+    .final-main {
+      padding: 8px 4px 14px;
+    }
+
+    .groups-grid {
+      gap: 18px;
+    }
+
+    .group-card {
+      border: 0;
+      border-top: 1px solid var(--line);
+      background: transparent;
+      grid-template-rows: 34px 1fr;
+    }
+
+    .group-head {
+      padding-inline: 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .group-list {
+      padding: 0;
+      gap: 0;
+    }
+
+    .group-list li {
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      padding: 0 2px;
+      font-size: 11px;
+    }
+
+
+
+    /* Final release polish:
+       Keeps the monochrome tournament-sheet identity, but improves hierarchy and recording readability. */
+
+    .center {
+      padding: 22px 26px;
+    }
+
+    .start-block {
+      gap: 24px;
+    }
+
+    .presented-by {
+      margin-bottom: 8px;
+      text-shadow:
+        0 0 1px rgba(0, 0, 0, 0.35),
+        0 0 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .start-screen-button {
+      margin-top: 8px;
+    }
+
+    .pot-intro-board {
+      grid-template-columns: minmax(0, 0.64fr) minmax(0, 1.36fr);
+      gap: 34px;
+    }
+
+    .pot-intro-title {
+      letter-spacing: 0.045em;
+    }
+
+    .pot-intro-copy {
+      font-size: clamp(12px, 0.9vw, 15px);
+      line-height: 1.58;
+    }
+
+    .pot-intro-team {
+      min-height: 0;
+    }
+
+    .divider-card {
+      width: min(980px, 82vw);
+    }
+
+    .reveal-layout {
+      grid-template-columns: minmax(0, 1.02fr) minmax(0, 1.28fr);
+      gap: 20px;
+    }
+
+    .reveal-layout .panel {
+      grid-template-rows: 1fr;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .reveal-layout .panel-head {
+      display: none;
+    }
+
+    .pot-panel-body {
+      padding: 20px 18px;
+      grid-template-rows: auto auto 1fr;
+      gap: 14px;
+    }
+
+    .pot-title-block {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 14px;
+    }
+
+    .pot-title {
+      font-size: clamp(34px, 4vw, 58px);
+    }
+
+    .pot-subtitle {
+      font-size: 12px;
+      letter-spacing: 0.16em;
+    }
+
+    .pot-grid {
+      gap: 10px;
+    }
+
+    .pot-team {
+      min-height: 70px;
+      padding: 10px;
+      font-size: clamp(11px, 0.9vw, 14px);
+      font-weight: 600;
+      opacity: 0.72;
+    }
+
+    .pot-team.flash,
+    .pot-team.locked {
+      opacity: 1;
+    }
+
+    .pot-team.used {
+      opacity: 0.28;
+    }
+
+    .side-stack {
+      gap: 20px;
+      grid-template-rows: minmax(0, 1.22fr) minmax(0, 0.78fr);
+    }
+
+    .team-panel-body {
+      padding: 0;
+    }
+
+    .team-card {
+      padding: 42px 38px;
+      gap: 24px;
+      border-width: 1px;
+      background: rgba(255, 255, 255, 0.36);
+      box-shadow: none;
+    }
+
+    .team-card.locked {
+      border-width: 2px;
+      box-shadow: inset 0 0 0 8px rgba(0, 0, 0, 0.035);
+    }
+
+    .draw-strip {
+      border: 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: transparent;
+      color: var(--text);
+      font-size: clamp(11px, 0.9vw, 14px);
+      padding: 12px 0;
+    }
+
+    .team-label {
+      color: var(--muted);
+      font-size: clamp(12px, 0.9vw, 15px);
+    }
+
+    .team-name {
+      font-size: clamp(78px, 9.3vw, 178px);
+      letter-spacing: 0.015em;
+    }
+
+    .destination-card {
+      border: 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 20px 0 18px;
+      background: transparent;
+    }
+
+    .destination-label {
+      font-size: 11px;
+    }
+
+    .destination-group {
+      font-size: clamp(48px, 6.1vw, 96px);
+      letter-spacing: 0.07em;
+    }
+
+    .team-note {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .drawn-panel-body {
+      padding: 16px;
+      gap: 12px;
+    }
+
+    .drawn-summary {
+      display: none;
+    }
+
+    .drawn-list {
+      gap: 0;
+    }
+
+    .drawn-list li {
+      border: 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.22);
+      background: transparent;
+      grid-template-columns: 64px 1fr;
+      font-size: clamp(11px, 0.9vw, 14px);
+    }
+
+    .drawn-list li.pending {
+      background: #111;
+      color: #fff;
+    }
+
+    .drawn-list .group-cell {
+      border-right: 0;
+      background: transparent;
+      color: inherit;
+      justify-content: flex-start;
+      padding-left: 2px;
+    }
+
+    .drawn-list .team-cell {
+      padding-left: 12px;
+    }
+
+    .pot-groups-main,
+    .final-main {
+      padding: 14px 6px 18px;
+    }
+
+    .groups-grid {
+      gap: 24px 26px;
+    }
+
+    .group-card {
+      border-top: 1px solid var(--line);
+      grid-template-rows: 42px 1fr;
+    }
+
+    .group-head {
+      font-size: clamp(13px, 0.95vw, 16px);
+      padding-inline: 0;
+    }
+
+    .group-head span:last-child {
+      display: none;
+    }
+
+    .group-list li {
+      min-height: 0;
+      padding: 0 2px;
+      font-size: clamp(12px, 0.95vw, 16px);
+      font-weight: 700;
+    }
+
+    .slot-no {
+      border-right: 0;
+      flex-basis: 44px;
+      font-size: 11px;
+      padding-right: 10px;
+    }
+
+    .final-board {
+      grid-template-rows: 72px 1fr;
+      gap: 22px;
+    }
+
+    .final-title-band {
+      border: 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: transparent;
+      color: var(--text);
+      padding: 0;
+      font-size: clamp(13px, 1vw, 17px);
+    }
+
+    .final-title-band .muted {
+      color: var(--muted);
+    }
+
+    @media (max-width: 1280px) {
+      .center {
+        padding: 16px 18px;
+      }
+
+      .reveal-layout {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.14fr);
+        gap: 14px;
+      }
+
+      .side-stack {
+        gap: 14px;
+      }
+
+      .team-card {
+        padding: 28px 24px;
+        gap: 16px;
+      }
+
+      .team-name {
+        font-size: clamp(58px, 7.2vw, 116px);
+      }
+
+      .destination-group {
+        font-size: clamp(38px, 4.8vw, 74px);
+      }
+
+      .pot-team {
+        min-height: 58px;
+      }
+
+      .groups-grid {
+        gap: 16px;
+      }
+    }
+
+
+    /* Final tweak: the drawn-list now always uses all twelve group rows.
+       This removes the dead-looking white space under early draws and makes A-L placement obvious. */
+    .drawn-panel-body {
+      grid-template-rows: 1fr;
+      align-content: stretch;
+    }
+
+    .drawn-list {
+      height: 100%;
+      display: grid;
+      grid-template-rows: repeat(12, minmax(0, 1fr));
+      align-self: stretch;
+    }
+
+    .drawn-list li {
+      min-height: 0;
+    }
+
+    .drawn-list li.empty {
+      opacity: 0.34;
+    }
+
+    .drawn-list li.empty .team-cell {
+      font-weight: 500;
+    }
+
+  
+    /* Hard layout lock: long band names must fit inside existing spaces, never resize the draw page. */
+    .reveal-layout,
+    .side-stack,
+    .panel,
+    .team-panel-body,
+    .drawn-panel-body,
+    .team-card,
+    .drawn-list,
+    .drawn-list li {
+      min-height: 0;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .team-card {
+      grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+      align-content: stretch;
+    }
+
+    .team-name {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      max-height: 100%;
+      overflow: hidden;
+      white-space: normal;
+      word-break: normal;
+      overflow-wrap: normal;
+      text-wrap: balance;
+    }
+
+    .drawn-panel-body {
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .drawn-list {
+      height: 100%;
+      grid-template-rows: repeat(12, minmax(0, 1fr));
+      grid-auto-rows: unset;
+      gap: 3px;
+    }
+
+    .drawn-list li {
+      height: 100%;
+      min-height: 0;
+      align-items: center;
+      grid-template-columns: 48px minmax(0, 1fr);
+    }
+
+    .drawn-list .group-cell,
+    .drawn-list .team-cell {
+      min-height: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .drawn-list .team-cell {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      white-space: nowrap;
+      text-overflow: clip;
+      font-size: var(--drawn-name-size, 11px);
+      letter-spacing: 0.035em;
+      line-height: 1;
+    }
+
+    .drawn-list .team-cell.name-long {
+      --drawn-name-size: 10px;
+      letter-spacing: 0.015em;
+    }
+
+    .drawn-list .team-cell.name-extra-long {
+      --drawn-name-size: 9px;
+      letter-spacing: 0;
+    }
+
+    .pot-team {
+      min-width: 0;
+      overflow: hidden;
+      font-size: var(--pot-name-size, 12px);
+    }
+
+    .pot-team.name-long {
+      --pot-name-size: 11px;
+      letter-spacing: 0.01em;
+    }
+
+    .pot-team.name-extra-long {
+      --pot-name-size: 10px;
+      letter-spacing: 0;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section id="holdingScreen" class="screen active">
+      <div class="topbar">
+        <span>Britpopped</span>
+        <span class="muted">Britpopped Presents</span>
+      </div>
+      <div class="center">
+        <div class="holding-wrap">
+          <div class="holding-main">
+            <img
+              src="https://i.postimg.cc/J0CKNq50/THE-WORLD-CUP-OF-BRITPOP-(3).gif"
+              alt="The World Cup of Britpop"
+            />
+          </div>
+          <div class="holding-foot">
+            <span class="muted">A live draw interface for a tournament nobody needed and everyone will take too seriously.</span>
+            <button id="enterBtn" class="btn" type="button">Enter</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <section id="potIntroScreen" class="screen">
+      <div class="topbar">
+        <span id="potIntroTopbar">Pot 1 / Top Seeds</span>
+        <span id="potIntroStep" class="muted">Pot 1 of 4</span>
+      </div>
+      <div class="center">
+        <div class="pot-intro-wrap">
+          <div class="pot-intro-main">
+            <div class="pot-intro-board">
+              <div class="pot-intro-info">
+                <div id="potIntroKicker" class="pot-intro-kicker">Introducing the Draw Pool</div>
+                <h2 id="potIntroTitle" class="pot-intro-title">Pot 1</h2>
+                <div id="potIntroType" class="pot-intro-type">Top Seeds</div>
+                <p id="potIntroCopy" class="pot-intro-copy">
+                  The highest-ranked qualifiers enter first, because even chaos likes to pretend it has a filing system. Each will be placed into a separate group.
+                </p>
+                <div class="pot-intro-stats">
+                  <div class="pot-intro-stat">
+                    <div class="pot-intro-stat-label">Rank range</div>
+                    <div id="potIntroRankRange" class="pot-intro-stat-value">#1–#12</div>
+                  </div>
+                  <div class="pot-intro-stat">
+                    <div class="pot-intro-stat-label">Vote range</div>
+                    <div id="potIntroVoteRange" class="pot-intro-stat-value">189–98</div>
+                  </div>
+                </div>
+              </div>
+              <div id="potIntroGrid" class="pot-intro-grid"></div>
+            </div>
+          </div>
+          <div class="pot-intro-foot">
+            <span id="potIntroFootnote" class="muted">Seeded by vote ranking</span>
+            <button id="potIntroNextBtn" class="btn" type="button">Next Pot</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="startScreen" class="screen">
+      <div class="topbar">
+        <span>Start</span>
+        <span class="muted">48 Teams / 12 Groups / 4 Pots</span>
+      </div>
+      <div class="center">
+        <div class="start-wrap">
+          <div class="start-main">
+            <div class="start-block">
+              <div class="presented-by">Britpopped Presents</div>
+              <h1 class="title start-screen-title">The World Cup of Britpop</h1>
+              <p class="subtitle start-screen-subtitle">Automatic seeded group draw</p>
+              <button id="startBtn" class="btn start-screen-button" type="button">Start Draw</button>
+            </div>
+          </div>
+          <div class="start-foot">
+            <span class="muted">Ranked by votes / top 48 qualified</span>
+            <span class="muted">Random every run, because fairness apparently now requires a machine to shuffle the nostalgia.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="dividerScreen" class="screen">
+      <div class="topbar">
+        <span id="dividerTopbar">Pot 1 / Top Seeds</span>
+        <span class="muted">Next Pot Begins</span>
+      </div>
+      <div class="center">
+        <div class="divider-wrap">
+          <div class="divider-main">
+            <div class="divider-card">
+              <div class="divider-head">
+                <span>Now Drawing From</span>
+                <span id="dividerStep" class="muted">Pot 1 of 4</span>
+              </div>
+              <div class="divider-body">
+                <div id="dividerPot" class="divider-pot">Pot 1</div>
+                <div id="dividerType" class="divider-type">Top Seeds</div>
+              </div>
+            </div>
+          </div>
+          <div class="divider-foot">
+            <span class="muted">Auto transition</span>
+            <span class="muted">Preparing current pot</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="revealScreen" class="screen">
+      <div class="topbar">
+        <span id="revealTopbarPot">Pot 1 / Top Seeds</span>
+        <span id="revealProgress" class="muted">Draw 1 / 48</span>
+      </div>
+      <div class="center">
+        <div class="reveal-wrap">
+          <div class="reveal-main">
+            <div class="reveal-layout">
+              <section class="panel">
+                <div class="panel-head">
+                  <span id="potPanelHead">Drawing From Pot 1</span>
+                  <span id="potPanelType" class="muted">Top Seeds</span>
+                </div>
+                <div class="pot-panel-body">
+                  <div class="pot-title-block">
+                    <div id="potBigTitle" class="pot-title">Pot 1</div>
+                    <div id="potBigSubtitle" class="pot-subtitle">Top Seeds</div>
+                  </div>
+                  <div id="potStatusLine" class="pot-subtitle">0 of 12 drawn</div>
+                  <div id="potGrid" class="pot-grid"></div>
+                </div>
+              </section>
+
+              <div class="side-stack">
+                <section class="panel">
+                  <div class="panel-head">
+                    <span>Selected Team</span>
+                    <span id="selectedTarget" class="muted">Group A</span>
+                  </div>
+                  <div class="team-panel-body">
+                    <div class="team-card">
+                      <div id="drawStrip" class="draw-strip">Draw 1 / 48 · Pot 1 · Group A</div>
+                      <div id="teamLabel" class="team-label">Now Drawing Group A</div>
+                      <div id="revealTeamName" class="team-name">—</div>
+                      <div class="destination-card">
+                        <div class="destination-label">Placed Into</div>
+                        <div id="destinationGroup" class="destination-group">Group A</div>
+                      </div>
+                      <div class="team-meta">
+                        <div id="revealPotChip" class="chip">Pot 1</div>
+                        <div id="revealGroupChip" class="chip">Group A</div>
+                      </div>
+                      <div id="teamNote" class="team-note">Randomisation in progress</div>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="panel">
+                  <div class="panel-head">
+                    <span>Drawn From Current Pot</span>
+                    <span id="drawnCountHead" class="muted">0 / 12</span>
+                  </div>
+                  <div class="drawn-panel-body">
+                    <div class="drawn-summary">
+                      <div id="currentPotMini" class="mini-chip">Pot 1</div>
+                      <div id="currentPotTypeMini" class="mini-chip">Top Seeds</div>
+                    </div>
+                    <ol id="drawnList" class="drawn-list"></ol>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div class="reveal-foot">
+            <span id="revealMessage" class="muted">Selecting team from current pot</span>
+            <span class="muted">Auto</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="potGroupsScreen" class="screen">
+      <div class="topbar">
+        <span id="potGroupsTopbar">Groups After Pot 1</span>
+        <span id="potGroupsStep" class="muted">12 / 48 placed</span>
+      </div>
+      <div class="center">
+        <div class="pot-groups-wrap">
+          <div class="pot-groups-main">
+            <div id="potGroupsGrid" class="groups-grid"></div>
+          </div>
+          <div class="pot-groups-foot">
+            <span id="potGroupsMessage" class="muted">Pot complete</span>
+            <button id="potGroupsNextBtn" class="btn" type="button">Next Pot</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="finalScreen" class="screen">
+      <div class="topbar">
+        <span>Final Group Stage</span>
+        <span class="muted">Complete</span>
+      </div>
+      <div class="center">
+        <div class="final-wrap">
+          <div class="final-main">
+            <div class="final-board">
+              <div class="final-title-band">
+                <span>Final Group Stage Draw</span>
+                <span class="muted">12 Groups / 48 Teams</span>
+              </div>
+              <div id="finalGrid" class="groups-grid"></div>
+            </div>
+          </div>
+          <div class="final-foot">
+            <span class="muted">12 groups / 4 teams each</span>
+            <div class="results-tools">
+              <div id="copyStatus" class="copy-status"></div>
+              <button id="copyBtn" class="btn" type="button">Copy Results</button>
+              <button id="restartBtn" class="btn" type="button">Restart Draw</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const GROUP_NAMES = Array.from({ length: 12 }, (_, i) => `Group ${String.fromCharCode(65 + i)}`);
+
+    const POT_NAMES = [
+      "Top Seeds",
+      "Second Seeds",
+      "Third Seeds",
+      "Fourth Seeds"
+    ];
+
+    const POT_1 = [
+      "Pulp",
+      "Blur",
+      "Oasis",
+      "Suede",
+      "Supergrass",
+      "Elastica",
+      "The Verve",
+      "Manic Street Preachers",
+      "Ocean Colour Scene",
+      "The Charlatans",
+      "Cast",
+      "Shed Seven"
+    ];
+
+    const POT_2 = [
+      "Sleeper",
+      "Ash",
+      "The Bluetones",
+      "Kula Shaker",
+      "The Lightning Seeds",
+      "Echobelly",
+      "Radiohead",
+      "James",
+      "The Stone Roses",
+      "Catatonia",
+      "Super Furry Animals",
+      "Stereophonics"
+    ];
+
+    const POT_3 = [
+      "Dodgy",
+      "Longpigs",
+      "Primal Scream",
+      "Space",
+      "The Divine Comedy",
+      "Mansun",
+      "Menswear",
+      "Gene",
+      "Lush",
+      "The Boo Radleys",
+      "Garbage",
+      "Travis"
+    ];
+
+    const POT_4 = [
+      "Belle & Sebastian",
+      "Saint Etienne",
+      "The Cardigans",
+      "Embrace",
+      "Paul Weller",
+      "Kenickie",
+      "The Seahorses",
+      "Skunk Anansie",
+      "Teenage Fanclub",
+      "Republica",
+      "Black Grape",
+      "Cornershop"
+    ];
+
+    const POTS = [POT_1, POT_2, POT_3, POT_4];
+
+    const BAND_DATA = {
+      "Pulp": { votes: 189, rank: 1 },
+      "Blur": { votes: 159, rank: 2 },
+      "Oasis": { votes: 148, rank: 3 },
+      "Suede": { votes: 143, rank: 4 },
+      "Supergrass": { votes: 135, rank: 5 },
+      "Elastica": { votes: 130, rank: 6 },
+      "The Verve": { votes: 121, rank: 7 },
+      "Manic Street Preachers": { votes: 118, rank: 8 },
+      "Ocean Colour Scene": { votes: 107, rank: 9 },
+      "The Charlatans": { votes: 102, rank: 10 },
+      "Cast": { votes: 100, rank: 11 },
+      "Shed Seven": { votes: 98, rank: 12 },
+      "Sleeper": { votes: 94, rank: 13 },
+      "Ash": { votes: 90, rank: 14 },
+      "The Bluetones": { votes: 89, rank: 15 },
+      "Kula Shaker": { votes: 87, rank: 16 },
+      "The Lightning Seeds": { votes: 76, rank: 17 },
+      "Echobelly": { votes: 76, rank: 17 },
+      "Radiohead": { votes: 76, rank: 17 },
+      "James": { votes: 74, rank: 20 },
+      "The Stone Roses": { votes: 74, rank: 20 },
+      "Catatonia": { votes: 70, rank: 22 },
+      "Super Furry Animals": { votes: 68, rank: 23 },
+      "Stereophonics": { votes: 63, rank: 24 },
+      "Dodgy": { votes: 61, rank: 25 },
+      "Longpigs": { votes: 60, rank: 26 },
+      "Primal Scream": { votes: 60, rank: 26 },
+      "Space": { votes: 56, rank: 28 },
+      "The Divine Comedy": { votes: 56, rank: 28 },
+      "Mansun": { votes: 54, rank: 30 },
+      "Menswear": { votes: 53, rank: 31 },
+      "Gene": { votes: 53, rank: 31 },
+      "Lush": { votes: 52, rank: 33 },
+      "The Boo Radleys": { votes: 52, rank: 33 },
+      "Garbage": { votes: 50, rank: 35 },
+      "Travis": { votes: 46, rank: 36 },
+      "Belle & Sebastian": { votes: 44, rank: 37 },
+      "Saint Etienne": { votes: 38, rank: 38 },
+      "The Cardigans": { votes: 36, rank: 39 },
+      "Embrace": { votes: 35, rank: 40 },
+      "Paul Weller": { votes: 34, rank: 41 },
+      "Kenickie": { votes: 33, rank: 42 },
+      "The Seahorses": { votes: 31, rank: 43 },
+      "Skunk Anansie": { votes: 28, rank: 44 },
+      "Teenage Fanclub": { votes: 28, rank: 44 },
+      "Republica": { votes: 27, rank: 46 },
+      "Black Grape": { votes: 27, rank: 46 },
+      "Cornershop": { votes: 26, rank: 48 }
+    };
+
+    const TIMINGS = {
+      dividerMs: 1800,
+      selectionDurationMs: 3200,
+      selectionTickMs: 140,
+      lockedPauseMs: 1850,
+      afterPotGroupsMs: 2600
+    };
+
+    const state = {
+      groups: [],
+      remainingPots: [],
+      drawnByPot: [],
+      groupOrderByPot: [],
+      step: 0,
+      currentReveal: null,
+      timers: [],
+      intervals: [],
+      currentPotIndex: -1,
+      shownPotDivider: [false, false, false, false],
+      currentPotIntroIndex: 0
+    };
+
+    const el = {
+      holdingScreen: document.getElementById("holdingScreen"),
+      potIntroScreen: document.getElementById("potIntroScreen"),
+      startScreen: document.getElementById("startScreen"),
+      dividerScreen: document.getElementById("dividerScreen"),
+      revealScreen: document.getElementById("revealScreen"),
+      potGroupsScreen: document.getElementById("potGroupsScreen"),
+      finalScreen: document.getElementById("finalScreen"),
+      enterBtn: document.getElementById("enterBtn"),
+      potIntroNextBtn: document.getElementById("potIntroNextBtn"),
+      startBtn: document.getElementById("startBtn"),
+      copyBtn: document.getElementById("copyBtn"),
+      restartBtn: document.getElementById("restartBtn"),
+      potIntroTopbar: document.getElementById("potIntroTopbar"),
+      potIntroStep: document.getElementById("potIntroStep"),
+      potIntroKicker: document.getElementById("potIntroKicker"),
+      potIntroTitle: document.getElementById("potIntroTitle"),
+      potIntroType: document.getElementById("potIntroType"),
+      potIntroCopy: document.getElementById("potIntroCopy"),
+      potIntroRankRange: document.getElementById("potIntroRankRange"),
+      potIntroVoteRange: document.getElementById("potIntroVoteRange"),
+      potIntroGrid: document.getElementById("potIntroGrid"),
+      potIntroFootnote: document.getElementById("potIntroFootnote"),
+      dividerTopbar: document.getElementById("dividerTopbar"),
+      dividerStep: document.getElementById("dividerStep"),
+      dividerPot: document.getElementById("dividerPot"),
+      dividerType: document.getElementById("dividerType"),
+      revealTopbarPot: document.getElementById("revealTopbarPot"),
+      revealProgress: document.getElementById("revealProgress"),
+      potPanelHead: document.getElementById("potPanelHead"),
+      potPanelType: document.getElementById("potPanelType"),
+      potBigTitle: document.getElementById("potBigTitle"),
+      potBigSubtitle: document.getElementById("potBigSubtitle"),
+      potStatusLine: document.getElementById("potStatusLine"),
+      potGrid: document.getElementById("potGrid"),
+      selectedTarget: document.getElementById("selectedTarget"),
+      revealTeamName: document.getElementById("revealTeamName"),
+      teamLabel: document.getElementById("teamLabel"),
+      drawStrip: document.getElementById("drawStrip"),
+      teamCard: document.querySelector(".team-card"),
+      destinationGroup: document.getElementById("destinationGroup"),
+      revealPotChip: document.getElementById("revealPotChip"),
+      revealGroupChip: document.getElementById("revealGroupChip"),
+      revealMessage: document.getElementById("revealMessage"),
+      teamNote: document.getElementById("teamNote"),
+      drawnCountHead: document.getElementById("drawnCountHead"),
+      currentPotMini: document.getElementById("currentPotMini"),
+      currentPotTypeMini: document.getElementById("currentPotTypeMini"),
+      drawnList: document.getElementById("drawnList"),
+      potGroupsTopbar: document.getElementById("potGroupsTopbar"),
+      potGroupsStep: document.getElementById("potGroupsStep"),
+      potGroupsMessage: document.getElementById("potGroupsMessage"),
+      potGroupsNextBtn: document.getElementById("potGroupsNextBtn"),
+      potGroupsGrid: document.getElementById("potGroupsGrid"),
+      finalGrid: document.getElementById("finalGrid"),
+      copyStatus: document.getElementById("copyStatus")
+    };
+
+    function randomInt(max) {
+      return Math.floor(Math.random() * max);
+    }
+
+    function shuffle(array) {
+      const copy = [...array];
+      for (let i = copy.length - 1; i > 0; i -= 1) {
+        const j = randomInt(i + 1);
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function validatePots() {
+      if (POTS.length !== 4) {
+        throw new Error("Exactly 4 pots are required.");
+      }
+
+      for (let i = 0; i < POTS.length; i += 1) {
+        if (POTS[i].length !== 12) {
+          throw new Error(`Pot ${i + 1} must contain exactly 12 teams.`);
+        }
+      }
+
+      const allTeams = POTS.flat();
+      if (new Set(allTeams).size !== allTeams.length) {
+        throw new Error("Duplicate team names found.");
+      }
+    }
+
+    function showScreen(name) {
+      [
+        el.holdingScreen,
+        el.potIntroScreen,
+        el.startScreen,
+        el.dividerScreen,
+        el.revealScreen,
+        el.potGroupsScreen,
+        el.finalScreen
+      ].forEach((screen) => screen.classList.remove("active"));
+
+      if (name === "holding") el.holdingScreen.classList.add("active");
+      if (name === "potIntro") el.potIntroScreen.classList.add("active");
+      if (name === "start") el.startScreen.classList.add("active");
+      if (name === "divider") el.dividerScreen.classList.add("active");
+      if (name === "reveal") el.revealScreen.classList.add("active");
+      if (name === "potGroups") el.potGroupsScreen.classList.add("active");
+      if (name === "final") el.finalScreen.classList.add("active");
+    }
+
+    function clearAllScheduled() {
+      state.timers.forEach((id) => window.clearTimeout(id));
+      state.intervals.forEach((id) => window.clearInterval(id));
+      state.timers = [];
+      state.intervals = [];
+    }
+
+    function resetDraw() {
+      clearAllScheduled();
+      validatePots();
+
+      state.groups = GROUP_NAMES.map((name) => ({
+        name,
+        teams: ["", "", "", ""]
+      }));
+
+      state.remainingPots = POTS.map((pot) => [...pot]);
+      state.drawnByPot = POTS.map(() => []);
+      // Bands are still selected randomly, but each pot is placed into Group A → L in order.
+      state.groupOrderByPot = POTS.map(() => [...Array(12).keys()]);
+      state.step = 0;
+      state.currentReveal = null;
+      state.currentPotIndex = -1;
+      state.shownPotDivider = [false, false, false, false];
+      el.copyStatus.textContent = "";
+    }
+
+    function isComplete() {
+      return state.step >= 48;
+    }
+
+    function getPotIndexFromStep(step = state.step) {
+      return Math.floor(step / 12);
+    }
+
+    function getDrawIndexInPot(step = state.step) {
+      return step % 12;
+    }
+
+    function fitTextToWidth(element, options = {}) {
+      const {
+        maxSize = 11,
+        minSize = 8,
+        step = 0.25
+      } = options;
+
+      if (!element || !element.textContent || element.textContent.trim() === "—") {
+        return;
+      }
+
+      element.style.fontSize = `${maxSize}px`;
+
+      let size = maxSize;
+      while (size > minSize && element.scrollWidth > element.clientWidth) {
+        size -= step;
+        element.style.fontSize = `${size}px`;
+      }
+    }
+
+    function fitDrawListText() {
+      document.querySelectorAll("#drawnList .team-cell").forEach((cell) => {
+        fitTextToWidth(cell, { maxSize: 11, minSize: 8 });
+      });
+    }
+
+    function fitGroupGridText(target) {
+      target.querySelectorAll(".slot-name").forEach((cell) => {
+        fitTextToWidth(cell, { maxSize: 11, minSize: 7.75 });
+      });
+    }
+
+    function renderGroupsGrid(target) {
+      target.innerHTML = "";
+
+      state.groups.forEach((group) => {
+        const card = document.createElement("section");
+        card.className = "group-card";
+
+        const head = document.createElement("div");
+        head.className = "group-head";
+        head.innerHTML = `<span>${group.name}</span><span>4 Teams</span>`;
+
+        const list = document.createElement("ol");
+        list.className = "group-list";
+
+        group.teams.forEach((team, slotIndex) => {
+          const li = document.createElement("li");
+          li.innerHTML = `
+            <span class="slot-no">P${slotIndex + 1}</span>
+            <span class="slot-name">${team || "—"}</span>
+          `;
+          list.appendChild(li);
+        });
+
+        card.appendChild(head);
+        card.appendChild(list);
+        target.appendChild(card);
+      });
+
+      fitGroupGridText(target);
+    }
+
+
+    function getNameLengthClass(name) {
+      if (!name || name === "—") return "";
+      if (name.length >= 20) return "name-extra-long";
+      if (name.length >= 15) return "name-long";
+      return "";
+    }
+
+    function fitTeamName() {
+      const node = el.revealTeamName;
+      if (!node) return;
+
+      node.style.fontSize = "";
+      node.style.lineHeight = "";
+      node.style.letterSpacing = "";
+
+      const text = node.textContent.trim();
+      if (!text || text === "—") return;
+
+      const maxSize = Math.min(148, Math.max(58, window.innerWidth * 0.084));
+      const minSize = 38;
+
+      let size = maxSize;
+      node.style.fontSize = `${size}px`;
+
+      // Force a stable containing area before measuring.
+      const availableWidth = node.clientWidth;
+      const availableHeight = node.clientHeight;
+
+      while (
+        size > minSize &&
+        (node.scrollWidth > availableWidth || node.scrollHeight > availableHeight)
+      ) {
+        size -= 2;
+        node.style.fontSize = `${size}px`;
+      }
+
+      if (text.length >= 20) {
+        node.style.letterSpacing = "0.005em";
+      }
+    }
+
+    function renderPotGrid(potIndex, flashRemainingIndex = null, lockedRemainingIndex = null) {
+      el.potGrid.innerHTML = "";
+
+      const drawnTeams = state.drawnByPot[potIndex];
+      const remainingTeams = state.remainingPots[potIndex];
+
+      drawnTeams.forEach((team) => {
+        const item = document.createElement("div");
+        item.className = `pot-team used ${getNameLengthClass(team)}`.trim();
+        item.textContent = team;
+        el.potGrid.appendChild(item);
+      });
+
+      remainingTeams.forEach((team, index) => {
+        const item = document.createElement("div");
+        item.className = `pot-team ${getNameLengthClass(team)}`.trim();
+        item.textContent = team;
+
+        if (index === flashRemainingIndex) {
+          item.classList.add("flash");
+        }
+
+        if (index === lockedRemainingIndex) {
+          item.classList.remove("flash");
+          item.classList.add("locked");
+        }
+
+        el.potGrid.appendChild(item);
+      });
+    }
+
+    function renderDrawnList(potIndex, pendingTeam = null) {
+      el.drawnList.innerHTML = "";
+
+      const rows = [...state.drawnByPot[potIndex]];
+      if (pendingTeam) {
+        rows.push(pendingTeam);
+      }
+
+      rows.forEach((team, index) => {
+        const groupIndex = state.groupOrderByPot[potIndex][index];
+        const li = document.createElement("li");
+
+        if (pendingTeam && index === rows.length - 1) {
+          li.className = "pending";
+        }
+
+        li.innerHTML = `
+          <div class="group-cell">${GROUP_NAMES[groupIndex].replace("Group ", "")}</div>
+          <div class="team-cell ${getNameLengthClass(team)}">${team}</div>
+        `;
+        el.drawnList.appendChild(li);
+      });
+
+      while (el.drawnList.children.length < 12) {
+        const index = el.drawnList.children.length;
+        const groupIndex = state.groupOrderByPot[potIndex][index];
+        const li = document.createElement("li");
+        li.className = "empty";
+        li.innerHTML = `
+          <div class="group-cell">${GROUP_NAMES[groupIndex].replace("Group ", "")}</div>
+          <div class="team-cell">—</div>
+        `;
+        el.drawnList.appendChild(li);
+      }
+    }
+
+    function showPotDivider(potIndex) {
+      const potType = POT_NAMES[potIndex];
+      el.dividerTopbar.textContent = `Pot ${potIndex + 1} / ${potType}`;
+      el.dividerStep.textContent = `Pot ${potIndex + 1} of 4`;
+      el.dividerPot.textContent = `Pot ${potIndex + 1}`;
+      el.dividerType.textContent = potType;
+      showScreen("divider");
+
+      const timerId = window.setTimeout(() => {
+        showReveal();
+      }, TIMINGS.dividerMs);
+
+      state.timers.push(timerId);
+    }
+
+    function showPotGroups(potIndex) {
+      renderGroupsGrid(el.potGroupsGrid);
+
+      const isFinalPot = potIndex === POTS.length - 1;
+
+      el.potGroupsTopbar.textContent = `Groups After Pot ${potIndex + 1}`;
+      el.potGroupsStep.textContent = `${state.step} / 48 placed`;
+      el.potGroupsMessage.textContent = isFinalPot
+        ? "All pots complete — review the groups, then reveal the final board"
+        : `Pot ${potIndex + 1} complete — review the groups, then continue`;
+      el.potGroupsNextBtn.textContent = isFinalPot ? "Show Final Groups" : `Next: Pot ${potIndex + 2}`;
+      showScreen("potGroups");
+    }
+
+    function showRevealOrDivider() {
+      if (isComplete()) {
+        renderGroupsGrid(el.finalGrid);
+        showScreen("final");
+        return;
+      }
+
+      const potIndex = getPotIndexFromStep();
+      const enteringNewPot = potIndex !== state.currentPotIndex;
+
+      if (enteringNewPot) {
+        state.currentPotIndex = potIndex;
+
+        if (!state.shownPotDivider[potIndex]) {
+          state.shownPotDivider[potIndex] = true;
+          showPotDivider(potIndex);
+          return;
+        }
+      }
+
+      showReveal();
+    }
+
+    function showReveal() {
+      if (isComplete()) {
+        renderGroupsGrid(el.finalGrid);
+        showScreen("final");
+        return;
+      }
+
+      const potIndex = getPotIndexFromStep();
+      const drawIndexInPot = getDrawIndexInPot();
+      const potType = POT_NAMES[potIndex];
+      const groupIndex = state.groupOrderByPot[potIndex][drawIndexInPot];
+      const remainingTeams = state.remainingPots[potIndex];
+
+      state.currentReveal = {
+        potIndex,
+        drawIndexInPot,
+        groupIndex,
+        selectedTeam: null
+      };
+
+      el.revealTopbarPot.textContent = `Pot ${potIndex + 1} / ${potType}`;
+      el.revealProgress.textContent = `Draw ${state.step + 1} / 48`;
+      el.potPanelHead.textContent = `Drawing From Pot ${potIndex + 1}`;
+      el.potPanelType.textContent = potType;
+      el.potBigTitle.textContent = `Pot ${potIndex + 1}`;
+      el.potBigSubtitle.textContent = potType;
+      el.potStatusLine.textContent = `${state.drawnByPot[potIndex].length} of 12 drawn`;
+      el.selectedTarget.textContent = GROUP_NAMES[groupIndex];
+      el.drawStrip.textContent = `Draw ${state.step + 1} of 48 · Pot ${potIndex + 1} of 4 · ${GROUP_NAMES[groupIndex]}`;
+      el.teamLabel.textContent = `Now Drawing ${GROUP_NAMES[groupIndex]}`;
+      el.destinationGroup.textContent = GROUP_NAMES[groupIndex];
+      el.revealPotChip.textContent = `Pot ${potIndex + 1}`;
+      el.revealGroupChip.textContent = GROUP_NAMES[groupIndex];
+      el.teamCard.classList.remove("locked");
+      el.revealTeamName.textContent = "—";
+      fitTeamName();
+      el.revealMessage.textContent = `Selecting band for ${GROUP_NAMES[groupIndex]}`;
+      el.teamNote.textContent = "Randomisation in progress";
+      el.drawnCountHead.textContent = `${state.drawnByPot[potIndex].length} / 12`;
+      el.currentPotMini.textContent = `Pot ${potIndex + 1}`;
+      el.currentPotTypeMini.textContent = potType;
+
+      renderPotGrid(potIndex);
+      renderDrawnList(potIndex);
+      showScreen("reveal");
+
+      let flashRemainingIndex = randomInt(remainingTeams.length);
+
+      const intervalId = window.setInterval(() => {
+        const currentRemainingLength = state.remainingPots[potIndex].length;
+        flashRemainingIndex = randomInt(currentRemainingLength);
+        renderPotGrid(potIndex, flashRemainingIndex, null);
+      }, TIMINGS.selectionTickMs);
+
+      state.intervals.push(intervalId);
+
+      const lockTimer = window.setTimeout(() => {
+        window.clearInterval(intervalId);
+        state.intervals = state.intervals.filter((id) => id !== intervalId);
+
+        const selectedRemainingIndex = randomInt(state.remainingPots[potIndex].length);
+        const selectedTeam = state.remainingPots[potIndex][selectedRemainingIndex];
+
+        state.currentReveal.selectedTeam = selectedTeam;
+
+        renderPotGrid(potIndex, null, selectedRemainingIndex);
+        renderDrawnList(potIndex, selectedTeam);
+
+        el.teamCard.classList.add("locked");
+        el.revealTeamName.textContent = selectedTeam;
+        fitTeamName();
+        el.revealMessage.textContent = `${selectedTeam} drawn for ${GROUP_NAMES[groupIndex]}`;
+        el.teamNote.textContent = `Locked: ${selectedTeam} → ${GROUP_NAMES[groupIndex]}`;
+        el.potStatusLine.textContent = `${state.drawnByPot[potIndex].length + 1} of 12 drawn`;
+        el.drawnCountHead.textContent = `${state.drawnByPot[potIndex].length + 1} / 12`;
+
+        const settleTimer = window.setTimeout(() => {
+          const [removedTeam] = state.remainingPots[potIndex].splice(selectedRemainingIndex, 1);
+          state.drawnByPot[potIndex].push(removedTeam);
+          state.groups[groupIndex].teams[potIndex] = removedTeam;
+          state.step += 1;
+
+          renderPotGrid(potIndex);
+          renderDrawnList(potIndex);
+
+          const potJustFinished = state.drawnByPot[potIndex].length === 12;
+
+          if (potJustFinished) {
+            showPotGroups(potIndex);
+          } else {
+            showReveal();
+          }
+        }, TIMINGS.lockedPauseMs);
+
+        state.timers.push(settleTimer);
+      }, TIMINGS.selectionDurationMs);
+
+      state.timers.push(lockTimer);
+    }
+
+
+    const POT_INTRO_COPY = [
+      "Ranks 1 to 12. These are the top seeds from the vote. The big beasts. The obvious names. The bands who arrive with expectations, baggage, choruses, cheekbones, and at least one argument about authenticity already forming in the comments. One band from this pot will be placed into each group, Group A through Group L.",
+      "Ranks 13 to 24. These are the second seeds. Strong enough to worry the top seeds, not quite powerful enough to avoid them. A deeply British administrative compromise dressed up as sporting jeopardy. One band from this pot will be added to each group, Group A through Group L.",
+      "Ranks 25 to 36. These are the third seeds. This is where the draw starts developing a personality disorder. Cult favourites, awkward match-ups, and acts capable of turning a tidy group into a damp Wednesday argument outside a venue. One band from this pot will be added to each group, Group A through Group L.",
+      "Ranks 37 to 48. These are the fourth seeds. The final layer. The glorious complications. The bands who make the whole thing less clean, less predictable, and therefore much better. One final band will be added to each group, Group A through Group L."
+    ];
+
+    function renderPotIntro(potIndex) {
+      const potType = POT_NAMES[potIndex];
+
+      state.currentPotIntroIndex = potIndex;
+      el.potIntroTopbar.textContent = `Pot ${potIndex + 1} / ${potType}`;
+      el.potIntroStep.textContent = `Pot ${potIndex + 1} of 4`;
+      el.potIntroTitle.textContent = `Pot ${potIndex + 1}`;
+      el.potIntroType.textContent = potType;
+      el.potIntroCopy.textContent = POT_INTRO_COPY[potIndex];
+
+      const potBands = POTS[potIndex].map((team) => ({
+        team,
+        ...BAND_DATA[team]
+      }));
+      const ranks = potBands.map((band) => band.rank);
+      const votes = potBands.map((band) => band.votes);
+
+      el.potIntroRankRange.textContent = `#${Math.min(...ranks)}–#${Math.max(...ranks)}`;
+      el.potIntroVoteRange.textContent = `${Math.max(...votes)}–${Math.min(...votes)}`;
+      el.potIntroFootnote.textContent =
+        `Seeded by vote ranking / ${potBands.length} bands / fixed placement order A to L`;
+
+      el.potIntroNextBtn.textContent =
+        potIndex < 3 ? `Next: Pot ${potIndex + 2}` : "Continue To Start";
+
+      el.potIntroGrid.innerHTML = `
+        <div class="pot-intro-table-head">
+          <div>Rank</div>
+          <div>Band</div>
+          <div>Votes</div>
+        </div>
+      `;
+
+      potBands.forEach(({ team, rank, votes }) => {
+        const item = document.createElement("div");
+        item.className = "pot-intro-team";
+        item.innerHTML = `
+          <div class="pot-intro-rank">#${rank}</div>
+          <div class="pot-intro-name">${team}</div>
+          <div class="pot-intro-votes">${votes}</div>
+        `;
+        el.potIntroGrid.appendChild(item);
+      });
+
+      showScreen("potIntro");
+    }
+
+    function advancePotIntro() {
+      const nextIndex = state.currentPotIntroIndex + 1;
+
+      if (nextIndex >= POTS.length) {
+        showScreen("start");
+        return;
+      }
+
+      renderPotIntro(nextIndex);
+    }
+
+    function startAutoDraw() {
+      resetDraw();
+      showRevealOrDivider();
+    }
+
+    function formatResults() {
+      return state.groups
+        .map((group) => {
+          const lines = group.teams.map((team, index) => `${index + 1}. ${team}`);
+          return `${group.name}:\n${lines.join("\n")}`;
+        })
+        .join("\n\n");
+    }
+
+    async function copyResults() {
+      const text = formatResults();
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const area = document.createElement("textarea");
+          area.value = text;
+          area.style.position = "absolute";
+          area.style.left = "-9999px";
+          document.body.appendChild(area);
+          area.select();
+          document.execCommand("copy");
+          document.body.removeChild(area);
+        }
+
+        el.copyStatus.textContent = "Results copied";
+      } catch (error) {
+        el.copyStatus.textContent = "Copy failed, because even the clipboard has grown tired of civic responsibility.";
+        console.error(error);
+      }
+    }
+
+    window.addEventListener("resize", fitTeamName);
+
+    el.enterBtn.addEventListener("click", () => renderPotIntro(0));
+    el.potIntroNextBtn.addEventListener("click", advancePotIntro);
+    el.startBtn.addEventListener("click", startAutoDraw);
+    el.copyBtn.addEventListener("click", copyResults);
+    el.potGroupsNextBtn.addEventListener("click", showRevealOrDivider);
+    el.restartBtn.addEventListener("click", () => {
+      clearAllScheduled();
+      showScreen("start");
+    });
+
+    showScreen("holding");
+  </script>
+</body>
+</html>
